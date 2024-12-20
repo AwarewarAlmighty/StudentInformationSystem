@@ -137,17 +137,21 @@ public class ProfileActivity extends AppCompatActivity {
         String department = etDepartment.getText().toString().trim();
 
         if (validateInput(name, email, phone, department)) {
-            currentStudent.setName(name);
-            currentStudent.setEmail(email);
-            currentStudent.setPhone(phone);
-            currentStudent.setDepartment(department);
-            currentStudent.setProfilePhoto(currentPhotoPath);
+            if (currentStudent != null) {
+                currentStudent.setName(name);
+                currentStudent.setEmail(email);
+                currentStudent.setPhone(phone);
+                currentStudent.setDepartment(department);
+                currentStudent.setProfilePhoto(currentPhotoPath);
 
-            if (databaseHelper.updateStudent(currentStudent)) {
-                Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
-                finish();
+                if (databaseHelper.updateStudent(currentStudent)) {
+                    Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
+                    finish();
+                } else {
+                    Toast.makeText(this, "Update failed", Toast.LENGTH_SHORT).show();
+                }
             } else {
-                Toast.makeText(this, "Update failed", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Student not found", Toast.LENGTH_SHORT).show();
             }
         }
     }

@@ -83,7 +83,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // Updated checkUser method with null checks
+    // Check user credentials
     public boolean checkUser(String username, String password) {
         if (username == null || password == null) {
             return false;
@@ -106,7 +106,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // Updated getStudentId method with null checks
+    // Get student ID based on username
     public String getStudentId(String username) {
         if (username == null) {
             return null;
@@ -135,7 +135,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // Updated addStudent method with null checks
+    // Add new student
     public boolean addStudent(Student student) {
         if (student == null || student.getStudentId() == null) {
             return false;
@@ -159,7 +159,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // Updated getStudent method with null checks
+    // Get student details
     public Student getStudent(String studentId) {
         if (studentId == null) {
             return null;
@@ -177,19 +177,58 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             Student student = null;
             if (cursor != null && cursor.moveToFirst()) {
                 student = new Student(
-                        cursor.getString(cursor.getColumnIndex(KEY_STUDENT_ID)),
-                        cursor.getString(cursor.getColumnIndex(KEY_NAME)),
-                        cursor.getString(cursor.getColumnIndex(KEY_EMAIL)),
-                        cursor.getString(cursor.getColumnIndex(KEY_PHONE)),
-                        cursor.getString(cursor.getColumnIndex(KEY_DEPARTMENT)),
-                        cursor.getString(cursor.getColumnIndex(KEY_PROFILE_PHOTO))
+                        getSafeString(cursor, KEY_STUDENT_ID),
+                        getSafeString(cursor, KEY_NAME),
+                        getSafeString(cursor, KEY_EMAIL),
+                        getSafeString(cursor, KEY_PHONE),
+                        getSafeString(cursor, KEY_DEPARTMENT),
+                        getSafeString(cursor, KEY_PROFILE_PHOTO)
                 );
                 cursor.close();
             }
+
             return student;
         } catch (Exception e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    private String getSafeString(Cursor cursor, String columnName) {
+        int columnIndex = cursor.getColumnIndex(columnName);
+        return columnIndex != -1 ? cursor.getString(columnIndex) : null;
+    }
+
+    // Update student details
+    public boolean updateStudent(Student student) {
+        if (student == null || student.getStudentId() == null) {
+            return false; // Return false if student object or student ID is null
+        }
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        // Add updated values to ContentValues with null checks
+        values.put(KEY_NAME, student.getName() != null ? student.getName().trim() : "");
+        values.put(KEY_EMAIL, student.getEmail() != null ? student.getEmail().trim() : "");
+        values.put(KEY_PHONE, student.getPhone() != null ? student.getPhone().trim() : "");
+        values.put(KEY_DEPARTMENT, student.getDepartment() != null ? student.getDepartment().trim() : "");
+        values.put(KEY_PROFILE_PHOTO, student.getProfilePhoto());
+
+        try {
+            // Update the row in the 'students' table where student_id matches
+            int rowsAffected = db.update(
+                    TABLE_STUDENTS,
+                    values,
+                    KEY_STUDENT_ID + " = ?",
+                    new String[]{student.getStudentId().trim()}
+            );
+
+            // Return true if at least one row was updated
+            return rowsAffected > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
     }
 }
